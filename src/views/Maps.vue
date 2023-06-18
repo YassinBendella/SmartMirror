@@ -1,0 +1,165 @@
+<template>
+    <div class="page" id="map">
+        <h1>Traffic</h1>
+        <div id="mapid">
+
+        </div>
+        <div id="buttons">
+            <div class="location">
+                <button @click="setLocation('school')">
+                    <img src="@/assets/school-marker.png" :class="place == 'school' ? 'active' : ''"/>
+                    <p>School</p>
+                </button>
+            </div>
+            <div class="location">
+                <button @click="setLocation('work')">
+                    <img src="@/assets/work-marker.png" :class="place == 'work' ? 'active' : ''"/>
+                    <p>Work</p>
+                </button>
+            </div>
+        </div>
+    </div>
+  </template>
+  
+<script>
+import leaflet from "leaflet";
+import {locationStore} from '@/stores/LocationStore.js'
+export default {
+    data() {
+        return {
+            zoom: 2,
+            map: undefined,
+            place: '',
+            workLocation: undefined,
+            schoolLocation: undefined,
+            markers: [],
+            markerPositions: {'school': undefined, 'work': undefined}
+        }
+    },
+    mounted(){
+        this.map = leaflet.map("mapid", {
+            maxBounds: [[-90,-180],   [90,180]],
+            maxBoundsViscosity: 1.0,
+            minZoom: 1,
+            maxZoom: 19,
+            bounceAtZoomLimits: true
+        }).setView([50.92293629424848, 4.424802046709414], 13)
+
+        leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+        }).addTo(this.map)
+        this.map.on('click', this.updateLocation)
+        this.updateMarkers()
+    },
+    methods: {
+        setLocation(place){
+            if (this.place == place){
+                this.place = ''
+            }else{
+                this.place = place
+            }
+        },
+        updateLocation(e){
+            let latlng = e.latlng
+            let lat = latlng.lat
+            let lng = latlng.lng
+            if (this.place != ''){
+                let store = locationStore()
+                if (this.place == 'school'){
+                    store.setSchool(lng,lat)
+                    this.markerPositions['school'] = [lat,lng]
+                }
+                else if (this.place == 'work'){
+                    store.setWork(lng,lat)
+                    this.markerPositions['work'] = [lat,lng]
+                }
+                this.schoolLocation = `lon: ${store.school[0] || ''}, lat: ${store.school[1] || ''}`;
+                this.workLocation = `lon: ${store.work[0] || ''}, lat: ${store.work[1] || ''}`
+
+                this.updateMarkers()
+            }
+        },
+
+        updateMarkers(){
+            let schoolIcon = leaflet.icon({ 
+                iconUrl: 'school-marker.png',
+                iconSize: [32, 32],
+            });
+            let workIcon = leaflet.icon({ 
+                iconUrl: 'work-marker.png',
+                iconSize: [32, 32],
+            });
+            for (let marker of this.markers){
+                this.map.removeLayer(marker)
+            }
+
+            let store = locationStore()
+            let schoolLocation = store['school']
+            let workLocation = store['work']
+
+            console.log(schoolLocation)
+            console.log(workLocation)
+
+            if (schoolLocation.length > 0){
+                console.log("adding school location")
+                let marker = leaflet.marker([schoolLocation[1], schoolLocation[0]], {icon: schoolIcon}).addTo(this.map)
+                this.markers.push(marker)
+            }
+            if (workLocation.length > 0){
+                console.log("adding work location")
+                let marker = leaflet.marker([workLocation[1], workLocation[0]], {icon: workIcon}).addTo(this.map)
+                this.markers.push(marker)
+            }
+        }
+    }
+}
+  
+</script>
+
+<style scoped>
+.leaflet-default-icon-path {
+    background-image: url(https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png);
+}
+
+#mapid{
+    height: 50vh;
+    width: 75vw;
+}
+
+#mapid > img{
+    max-height: none;
+}
+
+#map{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#buttons{
+    display: flex;
+    gap: 10vw;
+}
+
+.location > button:hover{
+    transform: translateY(-10px);
+    transition: transform 100ms;
+}
+
+.location > button{
+    background: transparent;
+    outline: none;
+    border: none;
+}
+
+.location > button > img{
+    width: 5vw;
+    height: 5vw;
+}
+
+.active{
+    filter: brightness(0.5);
+}
+</style>
