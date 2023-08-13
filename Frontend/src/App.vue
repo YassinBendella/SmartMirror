@@ -62,7 +62,7 @@ export default {
   display: flex;
   justify-content: space-around;
   background-color: white;
-  gap: 2vw;
+  /* gap: 2vw; */
   padding:10px 20px;
   border-top-left-radius: 50px;
   border-bottom-left-radius: 20px;
@@ -80,7 +80,7 @@ export default {
   padding:10px 20px;
   border-top-left-radius: 50px;
   border-bottom-left-radius: 20px;
-  margin-left: 2vw;
+  /* margin-left: 2vw; */
   width: 45%;
 }
 

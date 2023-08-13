@@ -23,7 +23,7 @@
   
 <script>
 import leaflet from "leaflet";
-import {locationStore} from '@/stores/LocationStore.js'
+import api from '../utils/api.js'
 export default {
     data() {
         return {
@@ -60,28 +60,18 @@ export default {
                 this.place = place
             }
         },
-        updateLocation(e){
+        async updateLocation(e){
             let latlng = e.latlng
             let lat = latlng.lat
             let lng = latlng.lng
             if (this.place != ''){
-                let store = locationStore()
-                if (this.place == 'school'){
-                    store.setSchool(lng,lat)
-                    this.markerPositions['school'] = [lat,lng]
-                }
-                else if (this.place == 'work'){
-                    store.setWork(lng,lat)
-                    this.markerPositions['work'] = [lat,lng]
-                }
-                this.schoolLocation = `lon: ${store.school[0] || ''}, lat: ${store.school[1] || ''}`;
-                this.workLocation = `lon: ${store.work[0] || ''}, lat: ${store.work[1] || ''}`
-
-                this.updateMarkers()
+                console.log(`updating location to: ${lat}, ${lng}`)
+                await api.updateLocation(this.place, {'lat': lat, 'lon': lng})
             }
+            await this.updateMarkers()
         },
 
-        updateMarkers(){
+        async updateMarkers(){
             let schoolIcon = leaflet.icon({ 
                 iconUrl: 'school-marker.png',
                 iconSize: [32, 32],
@@ -94,23 +84,23 @@ export default {
                 this.map.removeLayer(marker)
             }
 
-            let store = locationStore()
-            let schoolLocation = store['school']
-            let workLocation = store['work']
-
-            console.log(schoolLocation)
-            console.log(workLocation)
-
-            if (schoolLocation.length > 0){
-                console.log("adding school location")
-                let marker = leaflet.marker([schoolLocation[1], schoolLocation[0]], {icon: schoolIcon}).addTo(this.map)
+            await api.getLocation("work").then(location => {
+                // console.log("work location fetched")
+                // console.log(`new work location ${location.lat}, ${location.lon}`)
+                if (location) { 
+                let marker = leaflet.marker([location.lat, location.lon], {icon: workIcon}).addTo(this.map)
                 this.markers.push(marker)
-            }
-            if (workLocation.length > 0){
-                console.log("adding work location")
-                let marker = leaflet.marker([workLocation[1], workLocation[0]], {icon: workIcon}).addTo(this.map)
+                }
+            })
+
+            await api.getLocation("school").then(location => {
+                // console.log("school location fetched")
+                // console.log(`new school location ${location.lat}, ${location.lon}`)
+                if (location) {
+                let marker = leaflet.marker([location.lat, location.lon], {icon: schoolIcon}).addTo(this.map)
                 this.markers.push(marker)
-            }
+                }
+            })
         }
     }
 }

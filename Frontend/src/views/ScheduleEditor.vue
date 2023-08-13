@@ -32,7 +32,7 @@
             </div>
             <div id="schedule">
                 <div v-for="item in items" :key="item.name">
-                    <p> {{ item.hour.pad(2) }}:{{ item.min.pad(2) }} - {{ item.name }} </p>
+                    <p> {{ item.date.getHours().pad(2) }}:{{ item.date.getMinutes().pad(2) }} - {{ item.name }} </p>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
 <script>
 import Keyboard from 'simple-keyboard'
 import "simple-keyboard/build/css/index.css";
-import {scheduleStore} from '@/stores/ScheduleStore.js'
+import api from '../utils/api.js'
 
 export default {
     data(){
@@ -59,27 +59,34 @@ export default {
         }
     },
 
-    created(){
+    async created(){
         this.currentDay = this.getDay(this.counter);
         this.currentMonth = this.getMonth(this.counter);
+
+        await this.updateEvents() 
     },  
     
     methods: {
-        incrementDay(){
-            const store = scheduleStore()
+        async updateEvents(){
+            this.items = await api.getEvents(this.counter)
+            for (let item of this.items){
+                item.date = new Date(item.date)
+            }
+        },
+
+        async incrementDay(){
             this.counter += 1;
             let [nextDay, nextMonth] = this.getDayAndMonth(this.counter)
             this.currentDay = nextDay
             this.currentMonth = nextMonth
-            this.items = store.getItemsForDayAndMonth(this.currentDay,this.currentMonth)
+            await this.updateEvents()
         },
-        decrementDay(){
-            const store = scheduleStore()
+        async decrementDay(){
             this.counter -= 1;
             let [previousDay, previousMonth] = this.getDayAndMonth(this.counter)
             this.currentDay = previousDay
             this.currentMonth = previousMonth
-            this.items = store.getItemsForDayAndMonth(this.currentDay,this.currentMonth)
+            await this.updateEvents()
         },
         getDayAndMonth(days){
             console.log(days)
@@ -99,10 +106,14 @@ export default {
             let [, month] = this.getDayAndMonth(days)
             return month
         },
-        addEvent(){
-            const store = scheduleStore()
-            store.addItem({'name': this.event, 'hour': this.hour, 'min': this.min, 'day': this.getDay(this.counter), 'month': this.getMonth(this.counter)})
-            this.items = store.getItemsForDayAndMonth(this.currentDay,this.currentMonth)
+        async addEvent(){
+            // store.addItem({'name': this.event, 'hour': this.hour, 'min': this.min, 'day': this.getDay(this.counter), 'month': this.getMonth(this.counter)})
+            // this.items = store.getItemsForDayAndMonth(this.currentDay,this.currentMonth)
+
+            let event = {'name': this.event, 'hour': this.hour, 'min': this.min, 'day': this.getDay(this.counter), 'month': this.getMonth(this.counter)};
+            await api.addEvent(event);
+
+            await this.updateEvents()
         },
 
         onChange(input){

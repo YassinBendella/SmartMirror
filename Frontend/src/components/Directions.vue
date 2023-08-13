@@ -1,13 +1,13 @@
 <template>
     <div id="directions-module">
-        <h1>Traffic Overview</h1>
+        <h1>Traffic: Moderate</h1>
         <p>{{ schoolTime }} min to reach your school</p>
         <p>{{ workTime }} min to reach your work</p>
     </div>
 </template>
 
 <script>
-import {locationStore} from '@/stores/LocationStore.js'
+import api from '../utils/api.js'
 export default {
 data(){
     return {
@@ -17,16 +17,17 @@ data(){
 },
 
 async created(){
-    let locationData = locationStore()
     let address = process.env.VUE_APP_DIRECTIONS_CURRENT_ADDRESS
-    let school = locationData.school
-    let work = locationData.work
+    let school = await api.getLocation('school')
+    console.log(school)
+    let work = await api.getLocation('work')
     let currentLocation = await this.fetchLocation(address)
-    if (school){
-        this.schoolTime = await this.fetchDirectionTimes(currentLocation,school)
+
+    if (school && school != {}){
+        this.schoolTime = await this.fetchDirectionTimes(currentLocation,[school.lon,school.lat])
     }
-    if (work){
-        this.workTime = await this.fetchDirectionTimes(currentLocation,work)  
+    if (work && work != {}){
+        this.workTime = await this.fetchDirectionTimes(currentLocation,[work.lon,work.lat])  
     }
 },
 
@@ -49,6 +50,8 @@ methods: {
     async fetchDirections(currentLocation, targetLocation) {
         // https://docs.mapbox.com/api/navigation/directions/
         let token = process.env.VUE_APP_MAPBOX_API_KEY
+        console.log(currentLocation)
+        console.log(targetLocation)
         let url = `https://api.mapbox.com/directions/v5/mapbox/driving/${currentLocation};${targetLocation}?alternatives=true&geometries=geojson&language=en&overview=simplified&steps=true&access_token=${token}`
         
         let request = await fetch(url)
