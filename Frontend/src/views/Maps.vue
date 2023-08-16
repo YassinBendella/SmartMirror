@@ -84,22 +84,18 @@ export default {
                 this.map.removeLayer(marker)
             }
 
-            await api.getLocation("work").then(location => {
+            api.getLocation("work").then(location => {
                 // console.log("work location fetched")
                 // console.log(`new work location ${location.lat}, ${location.lon}`)
-                if (location) { 
                 let marker = leaflet.marker([location.lat, location.lon], {icon: workIcon}).addTo(this.map)
                 this.markers.push(marker)
-                }
             })
 
-            await api.getLocation("school").then(location => {
+            api.getLocation("school").then(location => {
                 // console.log("school location fetched")
                 // console.log(`new school location ${location.lat}, ${location.lon}`)
-                if (location) {
                 let marker = leaflet.marker([location.lat, location.lon], {icon: schoolIcon}).addTo(this.map)
                 this.markers.push(marker)
-                }
             })
         }
     }

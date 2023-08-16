@@ -24,8 +24,28 @@
             </button>
             <div id="inputs">
                 <input type="text" @focus="toggleKeyboard" :value="event" id="text-input">
-                <input class="number-input" type="number" v-model="hour" min="0" max="23">
-                <input class="number-input" type="number" v-model="min" min="0" max="60">
+                <div class="input-control">
+                    <button @click="incrementHour">
+                        <!-- + -->
+                        <img class="button-img" src="@/assets/plus.png" alt="">
+                    </button>
+                    <input class="number-input" type="number" v-model="hour" min="0" max="23">
+                    <button @click="decrementHour">
+                        <!-- - -->
+                        <img class="button-img" src="@/assets/minus.png" alt="">
+                    </button>
+                </div>
+                <div class="input-control">
+                    <button @click="incrementMinute">
+                        <!-- + -->
+                        <img class="button-img" src="@/assets/plus.png" alt="">
+                    </button>
+                    <input class="number-input" type="number" v-model="min" min="0" max="59">
+                    <button @click="decrementMinute">
+                        <!-- - -->
+                        <img class="button-img" src="@/assets/minus.png" alt="">
+                    </button>
+                </div>
             </div>
             <div id="keyboard" class="keyboard">
 
@@ -139,7 +159,19 @@ export default {
                     this.keyboard = undefined
                 }
             }
-        }
+        },
+        incrementHour(){
+            this.hour = Math.min(23, this.hour+1);
+        },
+        decrementHour(){
+            this.hour = Math.max(0, this.hour -1)
+        },
+        incrementMinute(){
+            this.min = Math.min(59, this.min+1);
+        },
+        decrementMinute(){
+            this.min = Math.max(0, this.min -1)
+        },
     }
 }
 
@@ -184,7 +216,14 @@ export default {
     outline: none;
     padding: 5px;
     text-align: center;
-    border-radius: 5px;
+    /* border-radius: 5px; */
+}
+
+button{
+    padding: 5px;
+    border: none;
+    background: #fff;
+    font-size: large;
 }
 
 #day-select{
@@ -196,5 +235,14 @@ export default {
 }
 .not-current{
     color: #c5c5c538;
+}
+
+.button-img{
+    max-width: 20px;
+}
+
+.input-control{
+    display: flex;
+
 }
 </style>

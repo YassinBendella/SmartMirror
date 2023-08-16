@@ -58,9 +58,7 @@ export class Database {
         }
 
         let date = new Date();
-        // Javascript dates are in UTC so we have to add 2 hours to get
-        // the right date (we are in UTC+2)
-        date.setHours(hour + 2);
+        date.setHours(hour);
         date.setMinutes(minute);
         date.setDate(dayOfMonth);
         date.setMonth(month);
